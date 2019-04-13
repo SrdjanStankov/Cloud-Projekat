@@ -1,44 +1,70 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.IO;
+using System.Threading;
+using System.Xml.Serialization;
 
 namespace Compute
 {
     internal class Program
     {
-        public const int numberOfContainers = 4;
-        public static int currentPortNum = 10000;
+        public static int numberOfContainers = 0;
 
         private static void Main(string[] args)
         {
             Console.WriteLine("Press to start process");
             Console.ReadKey(true);
 
-            var containers = new List<Process>();
+            numberOfContainers = LoadConfiguration() ?? -1;
 
-            for (int i = 0; i < numberOfContainers; i++)
+            if (!ContainerFactory.Instance.CreateContainers(numberOfContainers))
             {
-                containers.Add(new Process());
+                Console.WriteLine("Nevalidna konfiguracija");
+                Environment.Exit(-100);     // BAD configuration
             }
 
-            foreach (Process containerProcess in containers)
-            {
-                containerProcess.StartInfo.FileName = "E:\\SRKI\\FTN\\Cloud\\Projekat\\Container\\bin\\Debug\\Container.exe";
-                containerProcess.StartInfo.Arguments = currentPortNum++.ToString();
-                containerProcess.Start();
-            }
+            ContainerFactory.Instance.StartContainers();
 
+            var t = new Thread(CheckForNewPackage);
+
+
+            Console.WriteLine("Press key to abort all processes");
             Console.ReadKey(true);
 
-            foreach (Process item in containers)
+            ContainerFactory.Instance.KillLiveContainers();
+
+            Console.WriteLine("Press key to exit");
+            Console.ReadKey(true);
+        }
+
+        private static void CheckForNewPackage()
+        {
+            while (true)
             {
-                if (!item.HasExited)
+                Console.WriteLine("Checking package...");
+                // TODO: Proveravanje paketa na predefinisanoj lokaciji
+
+                Thread.Sleep(1000);
+            }
+        }
+
+        private static int? LoadConfiguration()
+        {
+            using (var fs = new FileStream("Config.xml", FileMode.OpenOrCreate))
+            {
+                var serializer = new XmlSerializer(typeof(Config));
+                var c = serializer.Deserialize(fs) as Config;
+
+                if (c.InstanceCount > 4 || c.InstanceCount < 1 || c is null)
                 {
-                    item.Kill();
+                    // TODO: Brisanje paketa sa predefinisane lokacije
+
+                    return null;
+                }
+                else
+                {
+                    return c.InstanceCount;
                 }
             }
-
-            Console.ReadKey(true);
         }
     }
 }
