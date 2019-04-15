@@ -4,6 +4,9 @@ using System.Xml;
 
 namespace Compute
 {
+    
+
+
     public static class ComputeConfigurationManipulator
     {
         public static int? LoadConfiguration()
