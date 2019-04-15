@@ -5,16 +5,12 @@ namespace Compute
 {
     public class ContainerFactory
     {
-        public static ContainerFactory Instance { get; private set; }
-
-        private const string containerExePath = "E:\\SRKI\\FTN\\Cloud\\Projekat\\Container\\bin\\Debug\\Container.exe";
+        public static ContainerFactory Instance { get; } = new ContainerFactory();
 
         private List<Process> containers = new List<Process>();
         private int portNum = 10000;
 
         private ContainerFactory() { }
-
-        static ContainerFactory() => Instance = new ContainerFactory();
 
         public bool CreateContainers(int numberOfContainers)
         {
@@ -31,7 +27,7 @@ namespace Compute
         {
             foreach (Process containerProcess in containers)
             {
-                containerProcess.StartInfo.FileName = containerExePath;
+                containerProcess.StartInfo.FileName = ComputeConfigurationContainer.ContainerExePath;
                 containerProcess.StartInfo.Arguments = portNum++.ToString();
                 containerProcess.Start();
             }

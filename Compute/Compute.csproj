@@ -44,7 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ComputeConfigurationContainer.cs" />
+    <Compile Include="ComputeConfigurationManipulator.cs" />
     <Compile Include="ContainerFactory.cs" />
+    <Compile Include="FileWatcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
