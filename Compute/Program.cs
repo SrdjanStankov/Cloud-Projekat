@@ -21,13 +21,20 @@ namespace Compute
 
             new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
             CopyDllToContainers();
-
             ContainerFactory.Instance.StartContainers();
 
-            new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
-
-            // TODO: kopira dll iz paketa na lokaciju container-a
-
+            //Thread.Sleep(1000);
+            //var proxys = new List<IWorker>();
+            //foreach (string item in ContainerFactory.Instance.Addresses)
+            //{
+            //    var factory = new ChannelFactory<IWorker>(new NetTcpBinding(), item);
+            //    proxys.Add(factory.CreateChannel());
+            //}
+            //int id = 0;
+            //foreach (var item in proxys)
+            //{
+            //    item.Start($"Container{id++}");
+            //}
 
             WriteLine("Press key to abort all processes");
             ReadKey(true);
