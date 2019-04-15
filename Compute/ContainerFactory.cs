@@ -37,6 +37,7 @@ namespace Compute
                 Addresses.Add($"net.tcp://localhost:{portNum}");
                 containerProcess.StartInfo.FileName = ComputeConfigurationContainer.ContainerExePath;
                 containerProcess.StartInfo.Arguments = portNum++.ToString();
+                
                 containerProcess.Start();
             }
         }
