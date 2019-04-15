@@ -18,6 +18,8 @@ namespace Compute
                 Exit(-100);     // BAD configuration
             }
 
+            new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
+
             ContainerFactory.Instance.StartContainers();
 
             new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
