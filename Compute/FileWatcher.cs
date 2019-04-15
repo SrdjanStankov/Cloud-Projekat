@@ -22,7 +22,7 @@ namespace Compute
         }
 
         // TODO: reaguj na promenu dll fajla
-
+        
         /*
          * Nesto ovako npr.
          * AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => typeof(IDomainEntity).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract).Select(x => x.Name).ToList();

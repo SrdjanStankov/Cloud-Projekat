@@ -8,6 +8,7 @@ namespace Compute
         public static ContainerFactory Instance { get; } = new ContainerFactory();
 
         private List<Process> containers = new List<Process>();
+        public List<string> Addresses { get; } = new List<string>();
         private int portNum = 10000;
 
         private ContainerFactory() { }
@@ -27,6 +28,12 @@ namespace Compute
         {
             foreach (Process containerProcess in containers)
             {
+                while (Server.CheckIfPortInUse(portNum))
+                {
+                    portNum++;
+                }
+
+                Addresses.Add($"net.tcp://localhost:{portNum}");
                 containerProcess.StartInfo.FileName = ComputeConfigurationContainer.ContainerExePath;
                 containerProcess.StartInfo.Arguments = portNum++.ToString();
                 containerProcess.Start();
