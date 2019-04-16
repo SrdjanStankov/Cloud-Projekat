@@ -10,9 +10,6 @@ namespace Container
         {
             Console.WriteLine("Container started....");
 
-            args = new string[2];
-            args[0] = 10000.ToString();
-
             if (!int.TryParse(args[0], out int port))
             {
                 Environment.Exit(-500); // BAD input argument

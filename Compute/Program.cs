@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using Common;
+using System.Collections.Generic;
+using System.IO;
+using System.ServiceModel;
 using System.Threading;
 using static System.Console;
 using static System.Environment;
@@ -24,18 +27,18 @@ namespace Compute
             CopyDllToContainers();
             ContainerFactory.Instance.StartContainers();
 
-            //Thread.Sleep(1000);
-            //var proxys = new List<IWorker>();
-            //foreach (string item in ContainerFactory.Instance.Addresses)
-            //{
-            //    var factory = new ChannelFactory<IWorker>(new NetTcpBinding(), item);
-            //    proxys.Add(factory.CreateChannel());
-            //}
-            //int id = 0;
-            //foreach (var item in proxys)
-            //{
-            //    item.Start($"Container{id++}");
-            //}
+            Thread.Sleep(1000);
+            var proxys = new List<IWorker>();
+            foreach (string item in ContainerFactory.Instance.Addresses)
+            {
+                var factory = new ChannelFactory<IWorker>(new NetTcpBinding(), item);
+                proxys.Add(factory.CreateChannel());
+            }
+            int id = 0;
+            foreach (var item in proxys)
+            {
+                item.Start($"Container{id++}");
+            }
 
             WriteLine("Press key to abort all processes");
             ReadKey(true);
@@ -49,6 +52,10 @@ namespace Compute
         {
             foreach (string item in Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath.Replace("Container.exe", ""), "*.dll"))
             {
+                if (item.Contains("Common.dll"))
+                {
+                    continue;
+                }
                 File.Delete(item);
             }
             string sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll")[0];
