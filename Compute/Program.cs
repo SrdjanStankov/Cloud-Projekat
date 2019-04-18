@@ -1,8 +1,5 @@
-﻿using Common;
-using System.Collections.Generic;
-using System.IO;
-using System.ServiceModel;
-using System.Threading;
+﻿using System.IO;
+using System.Linq;
 using static System.Console;
 using static System.Environment;
 
@@ -27,19 +24,6 @@ namespace Compute
             CopyDllToContainers();
             ContainerFactory.Instance.StartContainers();
 
-            Thread.Sleep(1000);
-            var proxys = new List<IWorker>();
-            foreach (string item in ContainerFactory.Instance.Addresses)
-            {
-                var factory = new ChannelFactory<IWorker>(new NetTcpBinding(), item);
-                proxys.Add(factory.CreateChannel());
-            }
-            int id = 0;
-            foreach (var item in proxys)
-            {
-                item.Start($"Container{id++}");
-            }
-
             WriteLine("Press key to abort all processes");
             ReadKey(true);
 
@@ -50,7 +34,7 @@ namespace Compute
         }
         private static void CopyDllToContainers()
         {
-            foreach (string item in Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath.Replace("Container.exe", ""), "*.dll"))
+            foreach (string item in Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath, "*.dll"))
             {
                 if (item.Contains("Common.dll"))
                 {
@@ -58,10 +42,10 @@ namespace Compute
                 }
                 File.Delete(item);
             }
-            string sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll")[0];
+            string sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll").FirstOrDefault();
             string[] splited = sourceFileName.Split('\\');
             string fileName = splited[splited.Length - 1];
-            string destinationFileName = ComputeConfigurationContainer.ContainerExePath.Replace("Container.exe", fileName);
+            string destinationFileName = $@"{ComputeConfigurationContainer.ContainerExePath}\{fileName}";
             File.Copy(sourceFileName, destinationFileName, true);
         }
     }
