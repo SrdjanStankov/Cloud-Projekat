@@ -11,19 +11,20 @@ namespace Container
         public Server(int port)
         {
             host = new ServiceHost(typeof(ContainerManagement));
-            host.AddServiceEndpoint(typeof(IContainerManagement), new NetTcpBinding(), $"net.tcp://localhost/{port}");
+            host.AddServiceEndpoint(typeof(IContainerManagement), new NetTcpBinding(), $"net.tcp://localhost:{port}");
         }
 
         public bool Open()
         {
-
             try
             {
                 host.Open();
+                Console.WriteLine("Server opened...");
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return false;
             }
 
@@ -31,10 +32,10 @@ namespace Container
 
         public bool Close()
         {
-
             try
             {
                 host.Close();
+                Console.WriteLine("Server closed...");
                 return true;
             }
             catch (Exception)
