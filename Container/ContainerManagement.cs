@@ -7,7 +7,9 @@ namespace Container
 {
     public class ContainerManagement : IContainerManagement
     {
-        public static string ContainerId { get; }
+        public static string ContainerId { get; set; }
+
+        public static string AssemblyName { get; set; }
 
         public string CheckHealth() => "OK";
 
@@ -16,6 +18,7 @@ namespace Container
             Assembly dll = null;
             try
             {
+                Console.WriteLine("Loading dll...");
                 dll = Assembly.LoadFile(assemblyName);
             }
             catch (Exception)
@@ -24,13 +27,14 @@ namespace Container
                 return $"Dll {assemblyName} could not be loaded.";
             }
 
+            Console.WriteLine("Checking if dll is null..");
             if (dll is null)
             {
                 Console.WriteLine("Error loading dll");
                 return "Error loading dll";
             }
 
-            //var classType = dll.GetExportedTypes().Select(s => s.GetInterfaces().SingleOrDefault()).SingleOrDefault();
+            Console.WriteLine("Getting types...");
             var classType = dll.GetExportedTypes().SingleOrDefault();
             Console.WriteLine(classType);
 
@@ -54,6 +58,7 @@ namespace Container
                 Console.WriteLine(e);
             }
 
+            AssemblyName = assemblyName;
             return "OK";
         }
     }

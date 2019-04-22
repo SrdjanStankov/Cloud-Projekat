@@ -1,27 +1,43 @@
 ﻿using Common;
 using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.ServiceModel;
 
 namespace Container
 {
     public class Program
     {
         private static Server server;
-        private static int port;
+        private static string address;
 
-        private static void Main(string[] args)// args[0] == port servera   // args[1] lokacija exe fajla container-a
+        private static void Main(string[] args) // args[0] == Container-(port)     containerId // args: containerId, serverPort
         {
             Console.WriteLine("Container started....");
 
-            port = GetPort(ref args);
+            ContainerManagement.ContainerId = args[0];
+            Console.WriteLine($"Compute server port: {args[1]}");
 
-            server = new Server(port);
+            using (var factory = new ChannelFactory<IRoleEnvironment>(new NetTcpBinding(), $"net.tcp://localhost:{args[1]}"))
+            {
+                var proxy = factory.CreateChannel();
+                address = proxy.AcquireAddress(AppContext.BaseDirectory /*ContainerManagement.AssemblyName*/, ContainerManagement.ContainerId);
+                Console.WriteLine($"Container id = {ContainerManagement.ContainerId}");
+            }
+
+            Console.WriteLine(address);
+            server = new Server(address);
 
             if (!server.Open())
             {
                 Console.WriteLine("Error starting server...");
+            }
+
+            using (var factory = new ChannelFactory<IRoleEnvironment>(new NetTcpBinding(), $"net.tcp://localhost:{args[1]}"))
+            {
+                var proxy = factory.CreateChannel();
+                foreach (var item in proxy.BrotherInstances(ContainerManagement.AssemblyName, address))
+                {
+                    Console.WriteLine($"Brother instance address = {item}");
+                }
             }
 
             Console.ReadKey(true);
@@ -34,25 +50,6 @@ namespace Container
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey(true);
-        }
-
-        private static int GetPort(ref string[] args)
-        {
-            if (args.Length == 0)
-            {
-                args = new string[5];
-                args[0] = "10000";
-            }
-
-
-            if (!int.TryParse(args[0], out int port))
-            {
-                Environment.Exit(-500); // BAD input argument
-            }
-
-            Console.WriteLine($"Port container-a: {port}");
-
-            return port;
         }
     }
 }

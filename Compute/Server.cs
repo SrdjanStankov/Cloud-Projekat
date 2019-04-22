@@ -1,26 +1,26 @@
 ﻿using Common;
+using RoleEnviromentLib;
 using System;
 using System.ServiceModel;
 
-namespace Container
+namespace Compute
 {
     public class Server
     {
         private ServiceHost host;
 
-        public Server(string address)
+        public Server(int port, Type serverType, Type interfaceType)
         {
-            host = new ServiceHost(typeof(ContainerManagement));
-            host.AddServiceEndpoint(typeof(IContainerManagement), new NetTcpBinding(), address);
+            host = new ServiceHost(serverType);
+            host.AddServiceEndpoint(interfaceType, new NetTcpBinding(), $"net.tcp://localhost:{port}");
         }
 
         public bool Open()
         {
-            Console.WriteLine("Opening server...");
             try
             {
                 host.Open();
-                Console.WriteLine("Server opened.");
+                Console.WriteLine("Server opened...");
                 return true;
             }
             catch (Exception e)
@@ -33,11 +33,10 @@ namespace Container
 
         public bool Close()
         {
-            Console.WriteLine("Closing server...");
             try
             {
                 host.Close();
-                Console.WriteLine("Server closed.");
+                Console.WriteLine("Server closed...");
                 return true;
             }
             catch (Exception)
