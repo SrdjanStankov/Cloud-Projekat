@@ -11,7 +11,7 @@ namespace Compute
                 return "Nepodrzana akcija.";
             }
             // TODO: Nepromenjen broj instanci
-            else if (count == ContainerFactory.Instance.Containers.Count)
+            else if (count == Program.numberOfActiveContainers)
             {
                 return "Nema promena";
             }
@@ -22,7 +22,7 @@ namespace Compute
                 while (count > ContainerFactory.Instance.Containers.Count)
                 {
                     counter++;
-                    ContainerFactory.Instance.CreateAndStartContainer();
+                    //ContainerFactory.Instance.CreateAndStartContainer();
                 }
 
                 while (count < ContainerFactory.Instance.Containers.Count)
@@ -30,6 +30,8 @@ namespace Compute
                     counter--;
                     ContainerFactory.Instance.KillContainer();
                 }
+
+                Program.numberOfActiveContainers += counter;
 
                 return (counter > 0) ? $"Angazovano {counter}. novih instanci" : $"Stopirano {counter}. instanci";
             }

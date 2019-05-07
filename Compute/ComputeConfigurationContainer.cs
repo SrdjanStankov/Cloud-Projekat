@@ -6,5 +6,6 @@ namespace Compute
     {
         public static string ContainerExePath { get; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).AppSettings.Settings["ContainerExePath"].Value;
         public static string ConfigLocation { get; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).AppSettings.Settings["PredefinedLocation"].Value;
+        public static string LocationForContainers { get; } = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).AppSettings.Settings["LocationForContainersToBeCopied"].Value;
     }
 }

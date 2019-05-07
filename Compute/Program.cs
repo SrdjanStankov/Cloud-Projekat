@@ -1,8 +1,6 @@
 ﻿using Common;
-using RoleEnviromentLib;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.ServiceModel;
 using System.Threading;
 
@@ -10,7 +8,8 @@ namespace Compute
 {
     public class Program
     {
-        public static int numberOfContainers = 0;
+        public static int numberOfActiveContainers = 0;
+
         private static string copiedDllPath;
         private static int roleServerStartingPort = 15000;
 
@@ -26,24 +25,23 @@ namespace Compute
                 return;
             }
 
-            var roleServer = new Server(port: roleServerStartingPort, serverType: typeof(RoleEnvironment), interfaceType: typeof(IRoleEnvironment));
-            var roleServer2 = new Server(port: roleServerStartingPort + 1, serverType: typeof(RoleEnvironment), interfaceType: typeof(IRoleEnvironment));
+            var roleServer = new Server(port: roleServerStartingPort, serverType: typeof(RoleEnviroment), interfaceType: typeof(IRoleEnvironment));
+            roleServer.Open();
 
             var scaleServer = new Server(port: roleServerStartingPort + 10, serverType: typeof(ComputeMenagment), interfaceType: typeof(IComputeManagement));
-            roleServer.Open();
-            roleServer2.Open();
-
             scaleServer.Open();
 
-            ContainerFactory.Instance.CreateAndStartContainers(ComputeConfigurationManipulator.LoadConfiguration().Value, roleServerStartingPort);
+            copiedDllPath = DllMenager.CopyDllToMainContainerLocation();
+
+            ContainerFactory.Instance.CopyToNLocations();
+            ContainerFactory.Instance.CreateAndStartContainers(roleServerStartingPort);
 
             new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
 
-            copiedDllPath = DllMenager.CopyDllToContainers();
-
-            foreach (var item in ContainerFactory.Instance.Containers)
+            for (int i = 0; i < ComputeConfigurationManipulator.LoadConfiguration().Value; i++)
             {
-                DllMenager.LoadDllToContainer(item.Value, copiedDllPath);
+                DllMenager.LoadDllToContainer(ContainerFactory.Instance.Containers.ElementAt(i).Value, copiedDllPath);
+                numberOfActiveContainers++;
             }
 
             var t = new Thread(CheckHealth) { IsBackground = true };
@@ -56,8 +54,6 @@ namespace Compute
             ContainerFactory.Instance.KillAllLiveContainers();
 
             roleServer.Close();
-            roleServer2.Close();
-
             scaleServer.Close();
 
             Console.WriteLine("Press key to exit");
@@ -79,6 +75,13 @@ namespace Compute
                             proxy.CheckHealth();
                         }
                     }
+                    catch (EndpointNotFoundException)
+                    {
+                        Console.WriteLine($"------------------------- Endpoint not found --------------{item.Value}");
+                        Console.WriteLine($"Trying to reboot container on address {item.Value} ...");
+                        ContainerFactory.Instance.RestartContainer(item.Key);
+                        DllMenager.LoadDllToContainer(item.Value, copiedDllPath);
+                    }
                     catch (CommunicationObjectFaultedException)
                     {
                         Console.WriteLine($"Coontainer on address {item.Value} not responding.");
@@ -86,14 +89,6 @@ namespace Compute
                         ContainerFactory.Instance.KillContainer(item.Key);
                         Console.WriteLine("Restarting container...");
                         ContainerFactory.Instance.RestartContainer(item.Key);
-                        DllMenager.LoadDllToContainer(item.Value, copiedDllPath);
-                    }
-                    catch (EndpointNotFoundException)
-                    {
-                        Console.WriteLine($"------------------------- Endpoint not found --------------{item.Value}");
-                        Console.WriteLine($"Trying to reboot container on address {item.Value} ...");
-                        ContainerFactory.Instance.RestartContainer(item.Key);
-                        DllMenager.LoadDllToContainer(item.Value, copiedDllPath);
                     }
                 }
                 Console.WriteLine("All OK.");

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 
@@ -7,18 +8,22 @@ namespace Compute
 {
     public class ContainerFactory
     {
-        private ContainerFactory() { }
         public static ContainerFactory Instance { get; } = new ContainerFactory();
+        //           ContainerId, Address
+        public Dictionary<string, string> Containers { get; } = new Dictionary<string, string>();
+
 
         private ushort portNum = 10000;
 
-        //           ContainerId, Address
-        public Dictionary<string, string> Containers { get; } = new Dictionary<string, string>();
+        //     fullPath with filename
+        private List<string> ContainersLocations = new List<string>();
 
         //               Address, Process
         private Dictionary<string, Process> ContainersProcesses { get; set; } = new Dictionary<string, Process>();
 
-        public void CreateAndStartContainer(int serverPort)
+        private ContainerFactory() { }
+
+        private void CreateAndStartContainer(int serverPort, int i)
         {
             while (CheckIfPortInUse(portNum))
             {
@@ -26,8 +31,8 @@ namespace Compute
             }
 
             string address = $"net.tcp://localhost:{portNum}";
-            string fileName = $@"{ComputeConfigurationContainer.ContainerExePath}\Container.exe";
             string ContainerId = $"Container-{portNum++.ToString()}";
+            string fileName = ContainersLocations[i];
             string arguments = $"{ContainerId} {serverPort}";
 
             ContainersProcesses.Add(address, new Process() { StartInfo = new ProcessStartInfo(fileName, arguments) });
@@ -35,13 +40,30 @@ namespace Compute
             ContainersProcesses[address].Start();
         }
 
-        public void CreateAndStartContainer() => CreateAndStartContainer(portNum);
-
-        public void CreateAndStartContainers(int numberOfContainers, int startingServerPort)
+        public void CopyToNLocations()
         {
-            for (int i = 0; i < numberOfContainers; i++)
+            var files = Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath).ToList();
+
+            for (int i = 0; i < 4; i++)
             {
-                CreateAndStartContainer(startingServerPort++);
+                string path = ComputeConfigurationContainer.LocationForContainers + $@"/Container {i}";
+                Directory.CreateDirectory(path);
+                files.ForEach(item => {
+                    string destFileName = path + $@"/{item.Split('\\').Last()}";
+                    File.Copy(item, destFileName, true);
+                    if (destFileName.EndsWith(".exe"))
+                    {
+                        ContainersLocations.Add(destFileName);
+                    }
+                });
+            }
+        }
+
+        public void CreateAndStartContainers(int serverPort)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                CreateAndStartContainer(serverPort, i);
             }
         }
 
@@ -83,8 +105,6 @@ namespace Compute
             if (!ContainersProcesses[Containers[containerId]].HasExited)
             {
                 ContainersProcesses[Containers[containerId]].Kill();
-                ContainersProcesses.Remove(Containers[containerId]);
-                Containers.Remove(containerId);
             }
         }
 

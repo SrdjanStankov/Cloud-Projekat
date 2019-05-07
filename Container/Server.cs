@@ -20,7 +20,7 @@ namespace Container
             try
             {
                 host.Open();
-                Console.WriteLine("Server opened.");
+                Console.WriteLine($"Server {host.Description.ServiceType} opened...");
                 return true;
             }
             catch (Exception e)
@@ -37,7 +37,7 @@ namespace Container
             try
             {
                 host.Close();
-                Console.WriteLine("Server closed.");
+                Console.WriteLine($"Server {host.Description.ServiceType} closed...");
                 return true;
             }
             catch (Exception)

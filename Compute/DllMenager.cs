@@ -7,7 +7,7 @@ namespace Compute
 {
     public static class DllMenager
     {
-        public static string CopyDllToContainers()
+        public static string CopyDllToMainContainerLocation()
         {
             foreach (string item in Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath, "*.dll"))
             {
@@ -15,6 +15,7 @@ namespace Compute
                 {
                     continue;
                 }
+
                 try
                 {
                     File.Delete(item);
@@ -44,8 +45,16 @@ namespace Compute
         {
             using (var factory = new ChannelFactory<IContainerManagement>(new NetTcpBinding(), address))
             {
-                var proxy = factory.CreateChannel();
-                proxy.Load(dllPath);
+                try
+                {
+                    var proxy = factory.CreateChannel();
+                    proxy.Load(dllPath);
+                }
+                catch (System.Exception e)
+                {
+                    System.Console.WriteLine(e);
+                    throw;
+                }
             }
         }
     }

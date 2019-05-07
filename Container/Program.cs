@@ -9,7 +9,7 @@ namespace Container
         private static Server server;
         private static string address;
 
-        private static void Main(string[] args) // args[0] == Container-(port)     containerId // args: containerId, serverPort
+        private static void Main(string[] args) // args[0] == Container-(port)  containerId         // args: containerId, ComputeServerPort
         {
             Console.WriteLine("Container started....");
 
@@ -19,7 +19,7 @@ namespace Container
             using (var factory = new ChannelFactory<IRoleEnvironment>(new NetTcpBinding(), $"net.tcp://localhost:{args[1]}"))
             {
                 var proxy = factory.CreateChannel();
-                address = proxy.AcquireAddress(AppContext.BaseDirectory /*ContainerManagement.AssemblyName*/, ContainerManagement.ContainerId);
+                address = proxy.AcquireAddress("", ContainerManagement.ContainerId);
                 Console.WriteLine($"Container id = {ContainerManagement.ContainerId}");
             }
 
@@ -31,22 +31,12 @@ namespace Container
                 Console.WriteLine("Error starting server...");
             }
 
-            using (var factory = new ChannelFactory<IRoleEnvironment>(new NetTcpBinding(), $"net.tcp://localhost:{args[1]}"))
-            {
-                var proxy = factory.CreateChannel();
-                foreach (var item in proxy.BrotherInstances(ContainerManagement.AssemblyName, address))
-                {
-                    Console.WriteLine($"Brother instance address = {item}");
-                }
-            }
-
             Console.ReadKey(true);
 
             if (!server.Close())
             {
                 Console.WriteLine("Error closing server");
             }
-
 
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey(true);

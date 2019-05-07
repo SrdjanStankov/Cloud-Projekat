@@ -18,7 +18,6 @@ namespace Compute
 
                 if (instanceCount > 4 || instanceCount < 1)
                 {
-                    // TODO: Brisanje paketa sa predefinisane lokacije
                     DeletePackage();
                     return null;
                 }
@@ -29,6 +28,12 @@ namespace Compute
             }
         }
 
-        private static void DeletePackage() => throw new NotImplementedException();
+        private static void DeletePackage()
+        {
+            foreach (var item in Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation))
+            {
+                File.Delete(item);
+            }
+        }
     }
 }

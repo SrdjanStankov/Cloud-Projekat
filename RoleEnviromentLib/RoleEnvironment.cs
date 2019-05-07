@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace RoleEnviromentLib
 {
-    public class RoleEnvironment : IRoleEnvironment
+    public class RoleEnvironment
     {
         public static string myAddress;
 
@@ -15,54 +16,12 @@ namespace RoleEnviromentLib
         /// </summary>
         public static string CurrentRoleInstance(string myAssembly, string containerId)
         {
-            //foreach (var item in ContainerFactory.Instance.Containers)
-            //{
-            //    if (item.Key == containerId)
-            //    {
-            //        return item.Value;
-            //    }
-            //}
-            return "";
-        }
-
-        public string AcquireAddress(string myAssemblyName, string containerId)
-        {
-            File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\\Proba.txt", myAssemblyName);
-            //if (!ContainerFactory.Instance.Containers.ContainsKey(containerId))
-            //{
-            //    return "";
-            //}
-
-            //return ContainerFactory.Instance.Containers[containerId];
-            return "";
-        }
-
-        string[] IRoleEnvironment.BrotherInstances(string myAssemblyName, string myAddress)
-        {
-            RoleEnvironment.myAddress = myAddress;
-            return BrotherInstances;
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Povratna vrednost je lista portova bratskih instanci.
         /// </summary>
-        public static string[] BrotherInstances
-        {
-            get
-            {
-                var retVal = new List<string>();
-
-                //foreach (var item in ContainerFactory.Instance.Containers)
-                //{
-                //    if (item.Value == myAddress)
-                //    {
-                //        continue;
-                //    }
-                //    retVal.Add(item.Value);
-                //}
-
-                return retVal.ToArray();
-            }
-        }
+        public static string[] BrotherInstances { get; }
     }
 }
