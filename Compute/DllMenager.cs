@@ -1,4 +1,5 @@
 ﻿using Common;
+using System;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
@@ -20,25 +21,30 @@ namespace Compute
                 {
                     File.Delete(item);
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
-                    System.Console.WriteLine("Failed to delete old file...");
+                    Console.WriteLine("Failed to delete old file...");
                 }
             }
 
-            string sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll").FirstOrDefault();
-            string fileName = sourceFileName.Split('\\').Last();
-            string destinationFileName = $@"{ComputeConfigurationContainer.ContainerExePath}\{fileName}";
-            try
+            var sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll").ToList();
+            string dest = "";
+            sourceFileName.ForEach(item =>
             {
-                File.Copy(sourceFileName, destinationFileName, true);
-            }
-            catch (System.Exception)
-            {
-                System.Console.WriteLine("Failed to copy file...");
-            }
+                string filename = item.Split('\\').Last();
+                string destinationFileName = $@"{ComputeConfigurationContainer.ContainerExePath}\{filename}";
+                try
+                {
+                    File.Copy(item, destinationFileName, true);
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("Failed to copy file...");
+                }
 
-            return destinationFileName;
+                dest = destinationFileName;
+            });
+            return dest;
         }
 
         public static void LoadDllToContainer(string address, string dllPath)
@@ -48,12 +54,11 @@ namespace Compute
                 try
                 {
                     var proxy = factory.CreateChannel();
-                    proxy.Load(dllPath);
+                    Console.WriteLine(proxy.Load(dllPath));
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
-                    System.Console.WriteLine(e);
-                    throw;
+                    Console.WriteLine(e);
                 }
             }
         }

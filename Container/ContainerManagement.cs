@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace Container
 {
@@ -15,7 +16,7 @@ namespace Container
 
         public string Load(string assemblyName)
         {
-            Assembly dll = null;
+            Assembly dll;
             try
             {
                 Console.WriteLine("Loading dll...");
@@ -35,7 +36,9 @@ namespace Container
             }
 
             Console.WriteLine("Getting types...");
+
             var classType = dll.GetExportedTypes().SingleOrDefault();
+
             Console.WriteLine(classType);
 
             if (classType.GetInterfaces().Contains(typeof(IWorker)))
@@ -51,7 +54,8 @@ namespace Container
             try
             {
                 dynamic instance = Activator.CreateInstance(classType);
-                instance.Start(ContainerId);
+                new Thread(new ThreadStart(()=>instance.Start(ContainerId))).Start();
+                //instance.Start(ContainerId);
             }
             catch (Exception e)
             {

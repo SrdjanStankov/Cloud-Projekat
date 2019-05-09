@@ -13,7 +13,7 @@ namespace Compute
         private static string copiedDllPath;
         private static int roleServerStartingPort = 15000;
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             Console.WriteLine("Press to start process");
             Console.ReadKey(true);
@@ -72,7 +72,7 @@ namespace Compute
                         using (var factory = new ChannelFactory<IContainerManagement>(new NetTcpBinding(), item.Value))
                         {
                             var proxy = factory.CreateChannel();
-                            proxy.CheckHealth();
+                            Console.Write($"{proxy.CheckHealth()} ");
                         }
                     }
                     catch (EndpointNotFoundException)
@@ -91,7 +91,7 @@ namespace Compute
                         ContainerFactory.Instance.RestartContainer(item.Key);
                     }
                 }
-                Console.WriteLine("All OK.");
+                Console.WriteLine();
                 Thread.Sleep(5000);
             }
         }

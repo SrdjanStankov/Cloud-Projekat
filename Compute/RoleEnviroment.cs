@@ -1,15 +1,11 @@
 ﻿using Common;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Compute
 {
     public class RoleEnviroment : IRoleEnvironment
     {
-        public string AcquireAddress(string myAssemblyName, string containerId) => $"net.tcp://localhost:{containerId.Split('-').Last()}";
+        public string AcquireAddress(string myAssemblyName, string containerId) => ContainerFactory.Instance.Containers[containerId];
 
         public string[] BrotherInstances(string myAssemblyName, string myAddress)
         {
