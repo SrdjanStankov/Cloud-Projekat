@@ -40,16 +40,16 @@ namespace Compute
             ContainersProcesses[address].Start();
         }
 
-        public void CopyToNLocations()
+        public void CopyContainersTo4Locations()
         {
             var files = Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath).ToList();
 
             for (int i = 0; i < 4; i++)
             {
-                string path = ComputeConfigurationContainer.LocationForContainers + $@"/Container {i}";
+                string path = ComputeConfigurationContainer.LocationForContainers + $"\\Container {i}";
                 Directory.CreateDirectory(path);
                 files.ForEach(item => {
-                    string destFileName = path + $@"/{item.Split('\\').Last()}";
+                    string destFileName = path + $"\\{item.Split('\\').Last()}";
                     File.Copy(item, destFileName, true);
                     if (destFileName.EndsWith(".exe"))
                     {

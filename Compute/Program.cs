@@ -10,7 +10,6 @@ namespace Compute
     {
         public static int numberOfActiveContainers = 0;
 
-        private static string copiedDllPath;
         private static int roleServerStartingPort = 15000;
 
         private static void Main()
@@ -31,18 +30,23 @@ namespace Compute
             var scaleServer = new Server(port: roleServerStartingPort + 10, serverType: typeof(ComputeMenagment), interfaceType: typeof(IComputeManagement));
             scaleServer.Open();
 
-            copiedDllPath = DllMenager.CopyDllToMainContainerLocation();
+            // clear old containers
+            DllMenager.ClearContainersOfOldDlls();
 
-            ContainerFactory.Instance.CopyToNLocations();
+            // kopiraj kontejner na 4 lokacije
+            ContainerFactory.Instance.CopyContainersTo4Locations();
+
+            // kopiraj dll-ove na n lokacija
+            DllMenager.CopyDllsToNContainers(ComputeConfigurationManipulator.LoadConfiguration().Value);
+            
+            // startuj kontejnere
             ContainerFactory.Instance.CreateAndStartContainers(roleServerStartingPort);
 
-            new FileWatcher().StartWatching();  // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
+            // ako imaja dodatnih dll-ova pokrenuti ih
+            DllMenager.LoadDllToContainers();
 
-            for (int i = 0; i < ComputeConfigurationManipulator.LoadConfiguration().Value; i++)
-            {
-                DllMenager.LoadDllToContainer(ContainerFactory.Instance.Containers.ElementAt(i).Value, copiedDllPath);
-                numberOfActiveContainers++;
-            }
+            // periodicno proverava da li se na predefinisanoj lokaciji nalazi novi paket
+            new FileWatcher().StartWatching();
 
             var t = new Thread(CheckHealth) { IsBackground = true };
             t.Start();
@@ -80,7 +84,7 @@ namespace Compute
                         Console.WriteLine($"------------------------- Endpoint not found --------------{item.Value}");
                         Console.WriteLine($"Trying to reboot container on address {item.Value} ...");
                         ContainerFactory.Instance.RestartContainer(item.Key);
-                        DllMenager.LoadDllToContainer(item.Value, copiedDllPath);
+                        DllMenager.LoadDllToContainers();
                     }
                     catch (CommunicationObjectFaultedException)
                     {

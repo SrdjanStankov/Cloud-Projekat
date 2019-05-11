@@ -8,59 +8,95 @@ namespace Compute
 {
     public static class DllMenager
     {
-        public static string CopyDllToMainContainerLocation()
+        public static void ClearContainersOfOldDlls()
         {
-            foreach (string item in Directory.GetFiles(ComputeConfigurationContainer.ContainerExePath, "*.dll"))
+            for (int i = 0; i < 4; i++)
             {
-                if (item.Contains("Common.dll"))
-                {
-                    continue;
-                }
-
                 try
                 {
-                    File.Delete(item);
+                    foreach (string item in Directory.GetFiles($@"{GetLoacationForContainer(i)}", "*.dll"))
+                    {
+                        if (item.Contains("Common.dll"))
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            File.Delete(item);
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("Failed to delete old file...");
+                        }
+                    }
                 }
-                catch (Exception)
+                catch (DirectoryNotFoundException)
                 {
-                    Console.WriteLine("Failed to delete old file...");
+                    Console.WriteLine("Directori not found.");
+                    Console.WriteLine("Cannot delete old files.");
+                    Console.WriteLine("Skipping delete operation...");
+                    return;
                 }
             }
+        }
 
+        public static void CopyDllsToNContainers(int numberOfContainers)
+        {
             var sourceFileName = Directory.GetFiles(ComputeConfigurationContainer.ConfigLocation, "*.dll").ToList();
-            string dest = "";
-            sourceFileName.ForEach(item =>
-            {
-                string filename = item.Split('\\').Last();
-                string destinationFileName = $@"{ComputeConfigurationContainer.ContainerExePath}\{filename}";
-                try
-                {
-                    File.Copy(item, destinationFileName, true);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Failed to copy file...");
-                }
 
-                dest = destinationFileName;
-            });
-            return dest;
-        }
-
-        public static void LoadDllToContainer(string address, string dllPath)
-        {
-            using (var factory = new ChannelFactory<IContainerManagement>(new NetTcpBinding(), address))
+            for (int i = 0; i < numberOfContainers; i++)
             {
-                try
+                sourceFileName.ForEach(item =>
                 {
-                    var proxy = factory.CreateChannel();
-                    Console.WriteLine(proxy.Load(dllPath));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                    string filename = item.Split('\\').Last();
+                    string destinationFileName = $@"{GetLoacationForContainer(i)}/{filename}";
+                    try
+                    {
+                        File.Copy(item, destinationFileName, true);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Failed to copy file...");
+                    }
+                });
             }
         }
+
+        public static void LoadDllToContainers()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                string address = ContainerFactory.Instance.Containers.ElementAt(i).Value;
+
+                using (var factory = new ChannelFactory<IContainerManagement>(new NetTcpBinding(), address))
+                {
+                    try
+                    {
+                        var proxy = factory.CreateChannel();
+                        string filename = "";
+                        Directory.GetFiles(GetLoacationForContainer(i), "*.dll").ToList().ForEach(item =>
+                        {
+                            if (!item.Contains("Common.dll") && !item.Contains("RoleEnviromentLib.dll"))
+                            {
+                                filename = item.Split('\\').Last();
+                                return;
+                            }
+                        });
+                        if (!string.IsNullOrEmpty(filename) && !string.IsNullOrWhiteSpace(filename))
+                        {
+                            string dllPath = $@"{GetLoacationForContainer(i)}/{filename}"; 
+                            Console.WriteLine(proxy.Load(dllPath));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                } 
+            }
+        }
+
+        private static string GetLoacationForContainer(int i) => $"{ComputeConfigurationContainer.LocationForContainers}\\Container {i}";
     }
 }
